@@ -3,6 +3,8 @@
 ## Prerequisites
 - Flutter SDK (3.6.0+)
 - Android Studio / Android SDK (for APK builds)
+- Xcode (for macOS/iOS builds)
+- CocoaPods (for macOS/iOS dependencies)
 - Chrome browser (for web development)
 - Python 3 (for serving static web builds)
 
@@ -76,6 +78,47 @@ flutter build apk --release
 ```
 Note: Release builds require setting up a keystore and signing configuration.
 
+### macOS Build
+
+#### Enable macOS Desktop Support
+```bash
+flutter config --enable-macos-desktop
+```
+
+#### Add macOS Platform to Project
+```bash
+flutter create --platforms=macos .
+```
+
+#### Install Dependencies
+```bash
+cd macos
+pod install
+cd ..
+```
+
+#### Build macOS App
+```bash
+# Build with production flavor (recommended)
+flutter build macos --flavor production
+
+# Build debug version
+flutter build macos --debug
+
+# Build release version
+flutter build macos --release
+```
+
+The built app will be located at:
+```
+build/macos/Build/Products/Release-production/Pomo.app
+```
+
+#### Install to Applications Folder
+```bash
+cp -r build/macos/Build/Products/Release-production/Pomo.app /Applications/
+```
+
 ## Installing the Application
 
 ### Install on Connected Android Device
@@ -98,6 +141,23 @@ adb install build/app/outputs/flutter-apk/app-production-profile.apk
 ### Web Installation
 No installation needed for web. Deploy the `docs` folder to any static hosting service.
 
+### macOS Installation
+
+#### From Build Directory
+```bash
+open build/macos/Build/Products/Release-production/Pomo.app
+```
+
+#### Install to Applications
+```bash
+cp -r build/macos/Build/Products/Release-production/Pomo.app /Applications/
+```
+
+#### Run from Applications
+```bash
+open /Applications/Pomo.app
+```
+
 ## Running the Application
 
 ### Development Mode
@@ -110,6 +170,13 @@ flutter run -d chrome
 #### Run on Android Device
 ```bash
 flutter run -d [DEVICE_ID]
+```
+
+#### Run on macOS
+```bash
+flutter run -d macos
+# Or with specific flavor
+flutter run -d macos --flavor production
 ```
 
 #### Run on specific flavor
@@ -157,15 +224,22 @@ flutter build web --release -o docs
 # Build Android APK (profile mode)
 flutter build apk --profile
 
-# Install on connected device
+# Build macOS app
+flutter build macos --flavor production
+
+# Install on connected Android device
 flutter install --flavor production --profile
 
 # Run in development mode
 flutter run -d chrome           # Web
 flutter run -d [DEVICE_ID]       # Android
+flutter run -d macos            # macOS
 
 # Serve static web build
 cd docs && python3 -m http.server 8000
+
+# Open macOS app
+open build/macos/Build/Products/Release-production/Pomo.app
 ```
 
 ## Troubleshooting
@@ -174,12 +248,17 @@ cd docs && python3 -m http.server 8000
 1. **Localization errors**: Run `flutter gen-l10n`
 2. **Gradle errors**: Check Java version with `flutter doctor -v`
 3. **Out of memory**: Increase heap in `android/gradle.properties`
+4. **macOS build errors**: Run `cd macos && pod install`
+5. **Xcode configuration errors**: Use `--flavor production` flag
 
 ### Common Issues Fixed
 - ✅ Missing localization files (`flutter_gen` package)
 - ✅ Gradle version incompatibility with Java 21
 - ✅ Android Gradle Plugin version too old
 - ✅ Insufficient JVM heap size
+- ✅ macOS platform support enabled
+- ✅ CocoaPods dependencies configured
+- ✅ App entitlements for network and file access
 
 ## Project Structure
 ```
@@ -188,11 +267,17 @@ pomo/
 │   ├── generated/         # Generated localization files
 │   └── l10n/             # Localization configuration
 ├── android/              # Android-specific files
+├── macos/                # macOS-specific files
+│   ├── Runner/          # macOS app configuration
+│   └── Podfile          # CocoaPods dependencies
 ├── docs/                 # Web build output (for GitHub Pages)
 ├── build/                # Build artifacts
-│   └── app/
-│       └── outputs/
-│           └── flutter-apk/  # Generated APK files
+│   ├── app/
+│   │   └── outputs/
+│   │       └── flutter-apk/  # Generated APK files
+│   └── macos/
+│       └── Build/
+│           └── Products/     # macOS app bundles
 └── l10n.yaml            # Localization configuration
 ```
 
@@ -201,7 +286,10 @@ pomo/
 - Supports multiple timer fonts and themes
 - Web build is optimized and tree-shaken
 - APKs are approximately 109MB (includes Flutter engine)
+- macOS app is approximately 54MB
+- macOS app requires macOS 10.15 or later
+- The app includes window_manager for always-on-top functionality
 
 ---
-Last updated: August 9, 2025
+Last updated: August 10, 2025
 Built with Flutter 3.33.0
